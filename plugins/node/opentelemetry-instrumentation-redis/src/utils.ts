@@ -25,6 +25,7 @@ import {
   diag,
 } from '@opentelemetry/api';
 import {
+  Arex,
   DbStatementSerializer,
   RedisCommand,
   RedisInstrumentationConfig,
@@ -75,12 +76,13 @@ export const getTracedCreateStreamTrace = (
   };
 };
 
-const defaultDbStatementSerializer: DbStatementSerializer = cmdName => cmdName;
+const defaultDbStatementSerializer: DbStatementSerializer = (cmdName, args) => `${cmdName} ${args?.join(' ')}`;
 
 export const getTracedInternalSendCommand = (
   tracer: Tracer,
   original: Function,
-  config?: RedisInstrumentationConfig
+  config?: RedisInstrumentationConfig,
+  arex?: Arex,
 ) => {
   return function internal_send_command_trace(
     this: RedisPluginClientTypes,
@@ -151,6 +153,21 @@ export const getTracedInternalSendCommand = (
           );
         }
 
+        if (arex?.sendCmdRecord) {
+          // const record = arex?.sendCmdRecord;
+          safeExecuteInTheMiddle(
+            () => {
+              // record(span, cmd, cmd.args, reply);
+            },
+            err => {
+              if (err) {
+                diag.error('Error executing record', err);
+              }
+            },
+            true
+          );
+        }
+
         endSpan(span, err);
         return context.with(
           originalContext,
@@ -161,8 +178,12 @@ export const getTracedInternalSendCommand = (
       };
     }
     try {
-      // Span will be ended in callback
-      return original.apply(this, arguments);
+      if (arex?.mockSendCmd) {
+        return arex.mockSendCmd(arguments as any as RedisCommand);
+      } else {
+        // Span will be ended in callback
+        return original.apply(this, arguments);
+      }
     } catch (rethrow) {
       endSpan(span, rethrow);
       throw rethrow; // rethrow after ending span

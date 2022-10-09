@@ -77,3 +77,17 @@ export interface RedisInstrumentationConfig extends InstrumentationConfig {
   /** Require parent to create redis span, default when unset is false */
   requireParentSpan?: boolean;
 }
+
+
+export class Arex {
+  public async sendCmdRecord(span: Span, cmd: RedisCommand, args: any, reply: any) {
+    console.log(span.spanContext().spanId, JSON.stringify(cmd), JSON.stringify(reply));
+  }
+  public async mockSendCmd(cmd: RedisCommand) {
+    if (cmd.command === 'get') {
+      cmd.callback(null, '12345678');
+    } else if (cmd.command === 'set') {
+      cmd.callback(null, 'OK');
+    }
+  }
+}

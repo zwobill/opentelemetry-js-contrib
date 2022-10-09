@@ -26,7 +26,10 @@ import {
   getTracedCreateStreamTrace,
   getTracedInternalSendCommand,
 } from './utils';
-import { RedisInstrumentationConfig } from './types';
+import { 
+  Arex,
+  RedisInstrumentationConfig
+} from './types';
 import { VERSION } from './version';
 
 const DEFAULT_CONFIG: RedisInstrumentationConfig = {
@@ -38,7 +41,10 @@ export class RedisInstrumentation extends InstrumentationBase<
 > {
   static readonly COMPONENT = 'redis';
 
-  constructor(protected override _config: RedisInstrumentationConfig = {}) {
+  constructor(
+    protected override _config: RedisInstrumentationConfig = {},
+    protected _arex: Arex = new Arex(),
+    ) {
     super('@opentelemetry/instrumentation-redis', VERSION, _config);
   }
 
@@ -109,8 +115,9 @@ export class RedisInstrumentation extends InstrumentationBase<
   private _getPatchInternalSendCommand() {
     const tracer = this.tracer;
     const config = this._config;
+    const arex = this._arex;
     return function internal_send_command(original: Function) {
-      return getTracedInternalSendCommand(tracer, original, config);
+      return getTracedInternalSendCommand(tracer, original, config, arex);
     };
   }
 

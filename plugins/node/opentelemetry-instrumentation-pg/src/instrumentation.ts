@@ -175,6 +175,10 @@ export class PgInstrumentation extends InstrumentationBase {
       return function query(this: PgClientExtended, ...args: unknown[]) {
         let span: Span;
 
+        if (this.isArexRecording) {
+          this.saveArex(args);
+        }
+
         // Handle different client.query(...) signatures
         if (typeof args[0] === 'string') {
           const query = args[0];
@@ -251,7 +255,10 @@ export class PgInstrumentation extends InstrumentationBase {
         }
 
         // Perform the original query
-        const result: unknown = original.apply(this, args as any);
+        let result: unknown = original.apply(this, args as any);
+        if (this.isArexReplaying) {
+          result = this.arexLoadMock(args);
+        }
 
         // Bind promise to parent span and end the span
         if (result instanceof Promise) {

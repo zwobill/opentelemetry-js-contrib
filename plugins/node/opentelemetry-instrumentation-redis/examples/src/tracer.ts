@@ -8,6 +8,7 @@ import { ZipkinExporter } from '@opentelemetry/exporter-zipkin';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis';
+import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { Resource } from '@opentelemetry/resources';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
@@ -34,6 +35,7 @@ export const setupTracing = (serviceName: string) => {
   registerInstrumentations({
     instrumentations: [
       new HttpInstrumentation(),
+      new ExpressInstrumentation(),
       new RedisInstrumentation(),
     ],
     tracerProvider: provider,
