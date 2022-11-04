@@ -29,7 +29,6 @@ import {
   DbStatementSerializer,
   RedisCommand,
   RedisInstrumentationConfig,
-  RedisPluginClientTypes,
 } from './types';
 import { EventEmitter } from 'events';
 import { RedisInstrumentation } from './';
@@ -38,6 +37,7 @@ import {
   SemanticAttributes,
 } from '@opentelemetry/semantic-conventions';
 import { safeExecuteInTheMiddle } from '@opentelemetry/instrumentation';
+import { RedisPluginClientTypes } from './internal-types';
 
 const endSpan = (span: Span, err?: Error | null) => {
   if (err) {
